@@ -13,7 +13,8 @@ class Node:
     """Graph vertex, keyed by `id` (e.g. GCP resource key or IAM member string)."""
 
     id: str
-    attrs: dict[str, Any] = field(default_factory=dict)
+    node_type: str = ""
+    asset_type: str = ""
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -22,22 +23,24 @@ class Node:
         return isinstance(other, Node) and self.id == other.id
 
 
-@dataclass(slots=True)
+@dataclass
 class Edge:
     """Directed edge: tail ``from_node`` -> head ``to_node``, plus kind/roles for GCP IAM vs hierarchy."""
 
     from_node: Node
     to_node: Node
     kind: str = ""
-    roles: list[str] = field(default_factory=list)
+    _roles: set[str] = field(default_factory=set)
+
+    @property
+    def roles(self) -> list[str]:
+        return sorted(self._roles)
 
     def merge(self, *, kind: str | None = None, roles: list[str] | None = None, **_: Any) -> None:
         if kind is not None:
             self.kind = kind
         if roles is not None:
-            for r in roles:
-                if r and r not in self.roles:
-                    self.roles.append(r)
+            self._roles.update(r for r in roles if r)
 
     def __repr__(self) -> str:
         return f"Edge({self.from_node.id!r} -> {self.to_node.id!r}, kind={self.kind!r}, roles={self.roles!r})"
@@ -93,20 +96,24 @@ class DiGraph:
     def _ensure_node(self, x: str | Node) -> Node:
         nid = x.id if isinstance(x, Node) else x
         if nid not in self._nodes:
-            if isinstance(x, Node):
-                self._nodes[nid] = Node(nid, dict(x.attrs))
-            else:
-                self._nodes[nid] = Node(nid)
+            self._nodes[nid] = Node(nid) if not isinstance(x, Node) else Node(nid, x.node_type, x.asset_type)
             n = self._nodes[nid]
             self._adj[n] = []
             self._radj[n] = []
-        elif isinstance(x, Node) and x.attrs:
-            self._nodes[nid].attrs.update(x.attrs)
+        elif isinstance(x, Node):
+            n = self._nodes[nid]
+            if x.node_type:
+                n.node_type = x.node_type
+            if x.asset_type:
+                n.asset_type = x.asset_type
         return self._nodes[nid]
 
     def add_node(self, node: str | Node, **attr: Any) -> None:
         n = self._ensure_node(node)
-        n.attrs.update(attr)
+        if "node_type" in attr:
+            n.node_type = attr["node_type"]
+        if "asset_type" in attr:
+            n.asset_type = attr["asset_type"]
 
     def add_edge(self, u: str | Node, v: str | Node, **attr: Any) -> None:
         u_n = self._ensure_node(u)

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>GCP Asset Graph</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#f5f6fa; font-family:sans-serif; }
+    svg { width:100vw; height:100vh; cursor:grab; }
+    svg:active { cursor:grabbing; }
+    .nr rect    { fill:#7EB6D9; stroke:#4a90c4; stroke-width:1.5; }
+    .nm ellipse { fill:#7EC8A4; stroke:#3a9a6a; stroke-width:1.5; }
+    text { font-size:11px; fill:#111; pointer-events:none;
+            text-anchor:middle; dominant-baseline:middle; }
+    .eh { stroke:#aaa; stroke-width:1.5; fill:none; }
+    .ei { stroke:#E8855A; stroke-width:1.5; fill:none; stroke-dasharray:6,3; }
+    #legend { position:fixed; top:12px; left:12px; background:rgba(255,255,255,.92);
+               padding:10px 14px; border-radius:6px; font-size:13px; line-height:1.9; }
+  </style>
+</head>
+<body>
+<svg id="S" viewBox="-160 -418 3800 2436">
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#aaa"/>
+    </marker>
+    <marker id="ai" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#E8855A"/>
+    </marker>
+  </defs>
+  <path d="M960,-302 V0 H-80" class="ei" marker-end="url(#ai)"><title>roles/billing.admin</title></path>
+  <path d="M360,760 H420 V480 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M80,1000 H140 V760 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M1240,-302 V480 H480" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <path d="M1520,-302 V480 H480" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <path d="M960,-302 V480 H480" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M80,1000 H140 V240 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V240 H200" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M360,240 H420 V160 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V160 H480" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M360,760 H420 V720 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M1240,-302 V720 H480" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <path d="M960,-302 V720 H480" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M640,720 H700 V640 H760" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V640 H760" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M960,-302 V760 H200" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M1240,-302 V760 H200" class="ei" marker-end="url(#ai)"><title>roles/viewer</title></path>
+  <path d="M360,1360 H420 V1440 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M360,760 H280 V1360 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V1440 H480" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M360,1360 H420 V1280 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V1280 H480" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M640,720 H700 V800 H760" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V800 H760" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M80,1000 H140 V1360 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V1360 H200" class="ei" marker-end="url(#ai)"><title>roles/resourcemanager.folderAdmin
+roles/resourcemanager.folderEditor</title></path>
+  <path d="M1800,-302 V1360 H200" class="ei" marker-end="url(#ai)"><title>roles/viewer</title></path>
+  <path d="M2080,-302 V1000 H-80" class="ei" marker-end="url(#ai)"><title>roles/billing.creator
+roles/resourcemanager.projectCreator</title></path>
+  <path d="M2360,-302 V1000 H-80" class="ei" marker-end="url(#ai)"><title>roles/browser
+roles/cloudasset.owner
+roles/iam.securityReviewer
+roles/owner
+roles/resourcemanager.folderViewer
+roles/resourcemanager.organizationViewer</title></path>
+  <path d="M960,-302 V1000 H-80" class="ei" marker-end="url(#ai)"><title>roles/owner
+roles/resourcemanager.folderAdmin</title></path>
+  <path d="M80,1000 H140 V1600 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M2640,-302 V1600 H200" class="ei" marker-end="url(#ai)"><title>roles/editor</title></path>
+  <path d="M960,-302 V1600 H200" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <path d="M2920,-302 V1920 H-80" class="ei" marker-end="url(#ai)"><title>roles/storage.legacyBucketOwner</title></path>
+  <path d="M3200,-302 V1920 H-80" class="ei" marker-end="url(#ai)"><title>roles/storage.legacyBucketOwner</title></path>
+  <path d="M3480,-302 V1920 H-80" class="ei" marker-end="url(#ai)"><title>roles/storage.legacyBucketReader</title></path>
+  <path d="M360,240 H420 V320 H480" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M960,-302 V320 H480" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <path d="M80,1000 H140 V1760 H200" class="eh" marker-end="url(#ah)"><title>hierarchy</title></path>
+  <path d="M2640,-302 V1760 H200" class="ei" marker-end="url(#ai)"><title>roles/cloudasset.serviceAgent</title></path>
+  <path d="M960,-302 V1760 H200" class="ei" marker-end="url(#ai)"><title>roles/owner</title></path>
+  <g class="nr"><title>billingAccounts/01B2E0-10D255-037E4D</title><rect x="-80" y="-18" width="160" height="36" rx="4"/><text x="0" y="0">01B2E0-10D255-037E4D</text></g>
+  <g class="nm"><title>user:ron@test.authomize.com</title><ellipse cx="960" cy="-320" rx="80" ry="18"/><text x="960" y="-320">user:ron@test.auth…</text></g>
+  <g class="nr"><title>folders/188906894377</title><rect x="480" y="462" width="160" height="36" rx="4"/><text x="560" y="480">188906894377</text></g>
+  <g class="nr"><title>folders/767216091627</title><rect x="200" y="742" width="160" height="36" rx="4"/><text x="280" y="760">767216091627</text></g>
+  <g class="nr"><title>organizations/1066060271767</title><rect x="-80" y="982" width="160" height="36" rx="4"/><text x="0" y="1000">1066060271767</text></g>
+  <g class="nm"><title>serviceAccount:dev-manager@striking-arbor-264209.iam.gserviceaccount.com</title><ellipse cx="1240" cy="-320" rx="80" ry="18"/><text x="1240" y="-320">serviceAccount:dev…</text></g>
+  <g class="nm"><title>serviceAccount:devops-dude-1@striking-arbor-264209.iam.gserviceaccount.com</title><ellipse cx="1520" cy="-320" rx="80" ry="18"/><text x="1520" y="-320">serviceAccount:dev…</text></g>
+  <g class="nr"><title>folders/36290848176</title><rect x="200" y="222" width="160" height="36" rx="4"/><text x="280" y="240">36290848176</text></g>
+  <g class="nr"><title>folders/495694787245</title><rect x="480" y="142" width="160" height="36" rx="4"/><text x="560" y="160">495694787245</text></g>
+  <g class="nr"><title>folders/635215680011</title><rect x="480" y="702" width="160" height="36" rx="4"/><text x="560" y="720">635215680011</text></g>
+  <g class="nr"><title>folders/518729943705</title><rect x="760" y="622" width="160" height="36" rx="4"/><text x="840" y="640">518729943705</text></g>
+  <g class="nr"><title>folders/93198982071</title><rect x="480" y="1422" width="160" height="36" rx="4"/><text x="560" y="1440">93198982071</text></g>
+  <g class="nr"><title>folders/96505015065</title><rect x="200" y="1342" width="160" height="36" rx="4"/><text x="280" y="1360">96505015065</text></g>
+  <g class="nr"><title>folders/361332156337</title><rect x="480" y="1262" width="160" height="36" rx="4"/><text x="560" y="1280">361332156337</text></g>
+  <g class="nr"><title>folders/837642324986</title><rect x="760" y="782" width="160" height="36" rx="4"/><text x="840" y="800">837642324986</text></g>
+  <g class="nm"><title>group:reviewers@test.authomize.com</title><ellipse cx="1800" cy="-320" rx="80" ry="18"/><text x="1800" y="-320">group:reviewers@te…</text></g>
+  <g class="nm"><title>domain:test.authomize.com</title><ellipse cx="2080" cy="-320" rx="80" ry="18"/><text x="2080" y="-320">domain:test.authom…</text></g>
+  <g class="nm"><title>serviceAccount:exercise-fetcher@striking-arbor-264209.iam.gserviceaccount.com</title><ellipse cx="2360" cy="-320" rx="80" ry="18"/><text x="2360" y="-320">serviceAccount:exe…</text></g>
+  <g class="nr"><title>projects/185023072868</title><rect x="200" y="1582" width="160" height="36" rx="4"/><text x="280" y="1600">185023072868</text></g>
+  <g class="nm"><title>serviceAccount:service-377145543109@gcp-sa-cloudasset.iam.gserviceaccount.com</title><ellipse cx="2640" cy="-320" rx="80" ry="18"/><text x="2640" y="-320">serviceAccount:ser…</text></g>
+  <g class="nr"><title>storage.googleapis.com/authomize-exercise-data</title><rect x="-80" y="1902" width="160" height="36" rx="4"/><text x="0" y="1920">authomize-exercise…</text></g>
+  <g class="nm"><title>projectEditor:intrepid-fiber-264210</title><ellipse cx="2920" cy="-320" rx="80" ry="18"/><text x="2920" y="-320">projectEditor:intr…</text></g>
+  <g class="nm"><title>projectOwner:intrepid-fiber-264210</title><ellipse cx="3200" cy="-320" rx="80" ry="18"/><text x="3200" y="-320">projectOwner:intre…</text></g>
+  <g class="nm"><title>projectViewer:intrepid-fiber-264210</title><ellipse cx="3480" cy="-320" rx="80" ry="18"/><text x="3480" y="-320">projectViewer:intr…</text></g>
+  <g class="nr"><title>projects/20671306372</title><rect x="480" y="302" width="160" height="36" rx="4"/><text x="560" y="320">20671306372</text></g>
+  <g class="nr"><title>projects/377145543109</title><rect x="200" y="1742" width="160" height="36" rx="4"/><text x="280" y="1760">377145543109</text></g>
+</svg>
+<div id="legend">
+  <b>Nodes</b><br>
+  <span style="color:#7EB6D9">■</span> Resource &nbsp;
+  <span style="color:#7EC8A4">●</span> Member<br>
+  <b>Edges</b><br>
+  <span style="color:#aaa">—</span> Hierarchy &nbsp;
+  <span style="color:#E8855A">- -</span> IAM (hover for roles)
+</div>
+<script>
+  const S = document.getElementById('S');
+  let [vx,vy,vw,vh] = [-160,-418,3800,2436];
+  const setVB = () => S.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  let drag=false, ox=0, oy=0;
+  S.addEventListener('mousedown', e => { drag=true; ox=e.clientX; oy=e.clientY; });
+  window.addEventListener('mousemove', e => {
+    if(!drag) return;
+    vx -= (e.clientX-ox)/S.clientWidth*vw;
+    vy -= (e.clientY-oy)/S.clientHeight*vh;
+    ox=e.clientX; oy=e.clientY; setVB();
+  });
+  window.addEventListener('mouseup', () => drag=false);
+  S.addEventListener('wheel', e => {
+    e.preventDefault();
+    const f = e.deltaY>0 ? 1.1 : 0.9;
+    const mx = e.offsetX/S.clientWidth*vw+vx;
+    const my = e.offsetY/S.clientHeight*vh+vy;
+    vx=mx-(mx-vx)*f; vy=my-(my-vy)*f; vw*=f; vh*=f; setVB();
+  }, {passive:false});
+</script>
+</body>
+</html>
