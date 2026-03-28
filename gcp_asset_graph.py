@@ -8,7 +8,6 @@ Edges:
 
 from __future__ import annotations
 
-import argparse
 import json
 from pathlib import Path
 from typing import Any, Iterator
@@ -74,6 +73,157 @@ def add_iam_edges(g: DiGraph, resource_key: str, iam_policy: dict[str, Any]) -> 
                 )
 
 
+def effective_roles(g: DiGraph, member: str, resource: str) -> list[str]:
+    """
+    Return the deduplicated list of IAM roles *member* has on *resource*,
+    including roles inherited from any ancestor resource in the hierarchy.
+
+    Inheritance rule: a role granted on an ancestor resource is implicitly
+    granted on all of its descendants (recursively).
+    """
+    roles: list[str] = []
+    seen_roles: set[str] = set()
+    visited: set[str] = set()
+    queue: list[str] = [resource]
+
+    while queue:
+        current = queue.pop()
+        if current in visited:
+            continue
+        visited.add(current)
+
+        # Collect roles granted directly on this resource.
+        if g.has_edge(member, current):
+            edge = g.edges[member, current]
+            if edge.kind == "iam":
+                for role in edge.roles:
+                    if role not in seen_roles:
+                        seen_roles.add(role)
+                        roles.append(role)
+
+        # Walk up: hierarchy edges are parent -> child, so predecessors give parents.
+        for parent in g.predecessors(current, kind="hierarchy"):
+            if parent.id not in visited:
+                queue.append(parent.id)
+
+    return roles
+
+
+def all_permissions(g: DiGraph, member: str) -> dict[str, list[str]]:
+    """
+    Return every resource the *member* can access and the roles they hold on it,
+    including roles inherited from ancestor resources in the hierarchy.
+
+    Returns a dict mapping resource_id -> deduplicated list of roles.
+    """
+    result: dict[str, list[str]] = {}
+
+    if g._lookup_node(member) is None:
+        return result
+
+    for resource_node in g.successors(member, kind="iam"):
+        direct_roles = g.edges[member, resource_node.id].roles
+
+        # BFS downward: the member inherits direct_roles on every descendant.
+        queue = [resource_node]
+        visited: set[str] = set()
+        while queue:
+            current = queue.pop(0)
+            if current.id in visited:
+                continue
+            visited.add(current.id)
+
+            entry = result.setdefault(current.id, [])
+            for role in direct_roles:
+                if role not in entry:
+                    entry.append(role)
+
+            for child in g.successors(current, kind="hierarchy"):
+                queue.append(child)
+
+    return result
+
+
+def get_folder_hierarchy(g: DiGraph, root: str | None = None) -> dict[str, list[str]]:
+    """Return folder hierarchy parent->children via hierarchy edges."""
+    hierarchy: dict[str, list[str]] = {}
+
+    for parent_node, child_node, edge in g.edges(data=True):
+        if edge.kind != "hierarchy":
+            continue
+
+        parent_id = parent_node.id
+        child_id = child_node.id
+
+        if not parent_id.startswith(("folders/", "organizations/")):
+            continue
+        if not child_id.startswith(("folders/", "organizations/")):
+            continue
+
+        hierarchy.setdefault(parent_id, []).append(child_id)
+
+    for children in hierarchy.values():
+        children.sort()
+
+    if root is None:
+        return hierarchy
+
+    if root not in g._nodes:
+        return {}
+
+    result: dict[str, list[str]] = {}
+    visited: set[str] = set()
+
+    def collect(node_id: str) -> None:
+        if node_id in visited:
+            return
+        visited.add(node_id)
+
+        result[node_id] = hierarchy.get(node_id, [])
+        for child_id in result[node_id]:
+            if child_id in hierarchy:
+                collect(child_id)
+
+    collect(root)
+    return result
+
+
+def show_folder_hierarchy(g: DiGraph, root: str | None = None) -> str:
+    """Return a formatted, indented folder hierarchy string."""
+    hierarchy = get_folder_hierarchy(g, root=root)
+
+    if root is not None:
+        roots = [root] if root in g._nodes else []
+    else:
+        children = {c for kids in hierarchy.values() for c in kids}
+        roots = sorted([n for n in hierarchy.keys() if n not in children])
+
+    lines: list[str] = []
+
+    def walk(node_id: str, level: int) -> None:
+        indent = "  " * level
+        lines.append(f"{indent}{node_id}")
+        for child_id in hierarchy.get(node_id, []):
+            walk(child_id, level + 1)
+
+    visited: set[str] = set()
+
+    def walk(node_id: str, level: int) -> None:
+        if node_id in visited:
+            return
+        visited.add(node_id)
+
+        indent = "  " * level
+        lines.append(f"{indent}{node_id}")
+        for child_id in hierarchy.get(node_id, []):
+            walk(child_id, level + 1)
+
+    for root_id in roots:
+        walk(root_id, 0)
+
+    return "\n".join(lines)
+
+
 def build_graph_from_jsonl(path: Path) -> DiGraph:
     g = DiGraph()
     for asset in iter_jsonl(path):
@@ -94,29 +244,73 @@ def build_graph_from_jsonl(path: Path) -> DiGraph:
     return g
 
 
+CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
+
+
+def load_config() -> dict:
+    if not CONFIG_FILE.is_file():
+        return {}
+    with CONFIG_FILE.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build a DiGraph from GCP asset JSONL.")
-    parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Print node and edge counts.",
-    )
-    parser.add_argument(
-        "--edges",
-        action="store_true",
-        help="Print all edges with attributes.",
-    )
-    args = parser.parse_args()
+    config = load_config()
 
     if not DATA_FILE.is_file():
         raise SystemExit(f"Data file not found: {DATA_FILE}")
 
     g = build_graph_from_jsonl(DATA_FILE)
-    if args.stats:
+    if config.get("stats"):
         print(f"Nodes: {g.number_of_nodes()}, Edges: {g.number_of_edges()}")
-    if args.edges:
+    if config.get("edges"):
         for _, _, edge in g.edges(data=True):
             print(edge)
+    if config.get("folder_hierarchy"):
+        root = config.get("folder_hierarchy_root")
+        print(show_folder_hierarchy(g, root=root))
+
+    print("2 - Resource hierarchy")
+    print("3 - All permissions for a user")
+    print("4 - All permissions on a resource")
+    print("q - Quit")
+
+    while True:
+        choice = input("\nChoice: ").strip()
+
+        if choice == "q":
+            break
+
+        elif choice == "2":
+            root = input("Root resource (leave blank for full hierarchy): ").strip() or None
+            print(show_folder_hierarchy(g, root=root))
+
+        elif choice == "3":
+            member = input("Member (e.g. user:ron@test.authomize.com): ").strip()
+            perms = all_permissions(g, member)
+            if not perms:
+                print("No permissions found.")
+            else:
+                for resource, roles in sorted(perms.items()):
+                    asset_type = g._nodes[resource].attrs.get("asset_type", "")
+                    for role in roles:
+                        print(f'  ("{resource}", "{asset_type}", "{role}")')
+
+        elif choice == "4":
+            resource = input("Resource (e.g. folders/123): ").strip()
+            found = False
+            for node in g._nodes.values():
+                if node.attrs.get("node_type") != "member":
+                    continue
+                roles = effective_roles(g, node.id, resource)
+                if roles:
+                    print(f"  {node.id}: {roles}")
+                    found = True
+            if not found:
+                print("No permissions found.")
+
+        else:
+            print("Invalid choice.")
 
 
 if __name__ == "__main__":

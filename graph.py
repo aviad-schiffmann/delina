@@ -73,6 +73,8 @@ class DiGraph:
     def __init__(self) -> None:
         self._nodes: dict[str, Node] = {}
         self._edges: dict[tuple[Node, Node], Edge] = {}
+        self._adj: dict[Node, list[Node]] = {}   # out-neighbors
+        self._radj: dict[Node, list[Node]] = {}  # in-neighbors
 
     @property
     def edges(self) -> _EdgeView:
@@ -95,6 +97,9 @@ class DiGraph:
                 self._nodes[nid] = Node(nid, dict(x.attrs))
             else:
                 self._nodes[nid] = Node(nid)
+            n = self._nodes[nid]
+            self._adj[n] = []
+            self._radj[n] = []
         elif isinstance(x, Node) and x.attrs:
             self._nodes[nid].attrs.update(x.attrs)
         return self._nodes[nid]
@@ -109,6 +114,8 @@ class DiGraph:
         key = (u_n, v_n)
         if key not in self._edges:
             self._edges[key] = Edge(from_node=u_n, to_node=v_n)
+            self._adj[u_n].append(v_n)
+            self._radj[v_n].append(u_n)
         self._edges[key].merge(**attr)
 
     def has_edge(self, u: str | Node, v: str | Node) -> bool:
@@ -117,3 +124,44 @@ class DiGraph:
         if u_n is None or v_n is None:
             return False
         return (u_n, v_n) in self._edges
+
+    def successors(self, node: str | Node, kind: str | None = None) -> Iterator[Node]:
+        """Yield nodes reachable from *node* via one outgoing edge (optionally filtered by kind)."""
+        n = self._lookup_node(node)
+        if n is None:
+            return
+        for v in self._adj[n]:
+            if kind is None or self._edges[(n, v)].kind == kind:
+                yield v
+
+    def predecessors(self, node: str | Node, kind: str | None = None) -> Iterator[Node]:
+        """Yield nodes that have an outgoing edge to *node* (optionally filtered by kind)."""
+        n = self._lookup_node(node)
+        if n is None:
+            return
+        for u in self._radj[n]:
+            if kind is None or self._edges[(u, n)].kind == kind:
+                yield u
+
+    def ancestors(self, node: str | Node, kind: str | None = None) -> list[Node]:
+        """
+        Return all ancestors of *node* reachable by walking incoming edges, in
+        breadth-first order (closest ancestors first).
+
+        *kind* filters which edges are followed (e.g. ``"hierarchy"``).
+        The start node itself is not included.
+        """
+        start = self._lookup_node(node)
+        if start is None:
+            return []
+        visited: set[Node] = {start}
+        queue: list[Node] = [start]
+        result: list[Node] = []
+        while queue:
+            current = queue.pop(0)
+            for parent in self.predecessors(current, kind=kind):
+                if parent not in visited:
+                    visited.add(parent)
+                    result.append(parent)
+                    queue.append(parent)
+        return result
