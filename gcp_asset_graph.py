@@ -31,6 +31,19 @@ def resource_key_from_name(name: str) -> str:
     return "/".join(parts)
 
 
+def _path_key(ancestors: list[str], index: int) -> str:
+    """Return the full path key for ancestors[index].
+
+    GCP ancestors are ordered resource-first, root-last.  The path key is
+    assembled root-first so it encodes the full position in the hierarchy:
+
+        ancestors = ["folders/96505015065", "organizations/123"]
+        _path_key(ancestors, 0) -> "organizations/123/folders/96505015065"
+        _path_key(ancestors, 1) -> "organizations/123"
+    """
+    return "/".join(reversed(ancestors[index:]))
+
+
 def iter_jsonl(path: Path) -> Iterator[dict[str, Any]]:
     with path.open(encoding="utf-8") as f:
         for line_no, line in enumerate(f, start=1):
@@ -46,10 +59,12 @@ def iter_jsonl(path: Path) -> Iterator[dict[str, Any]]:
 def add_hierarchy_edges(g: DiGraph, ancestors: list[str]) -> None:
     """
     GCP order: ancestors[0] is the resource, ancestors[1] is its parent, etc.
-    Add edges parent -> child: ancestors[i+1] -> ancestors[i].
+    Add edges parent -> child using full path keys so that the same short ID
+    at different positions in the hierarchy creates distinct nodes.
     """
     for i in range(len(ancestors) - 1):
-        child, parent = ancestors[i], ancestors[i + 1]
+        child = _path_key(ancestors, i)
+        parent = _path_key(ancestors, i + 1)
         g.add_edge(parent, child, kind="hierarchy")
 
 
@@ -168,9 +183,15 @@ def get_folder_hierarchy(g: DiGraph, root: str | None = None) -> dict[str, list[
         parent_id = parent_node.id
         child_id = child_node.id
 
-        if not parent_id.startswith(("folders/", "organizations/")):
+        # With path-based keys all hierarchy IDs start with "organizations/".
+        # Check the short tail (last two slash-separated parts) to filter to
+        # folder/org nodes only.
+        parent_tail = "/".join(parent_id.split("/")[-2:])
+        child_tail = "/".join(child_id.split("/")[-2:])
+
+        if not parent_tail.startswith(("folders/", "organizations/")):
             continue
-        if not child_id.startswith(("folders/", "organizations/")):
+        if not child_tail.startswith(("folders/", "organizations/")):
             continue
 
         hierarchy.setdefault(parent_id, []).append(child_id)
@@ -217,7 +238,9 @@ def show_folder_hierarchy(g: DiGraph, root: str | None = None) -> str:
         if node_id in path:  # cycle guard only
             return
         indent = "  " * level
-        lines.append(f"{indent}{node_id}")
+        # Display the short tail (last two path components) for readability.
+        tail = "/".join(node_id.split("/")[-2:])
+        lines.append(f"{indent}{tail}")
         for child_id in hierarchy.get(node_id, []):
             walk(child_id, level + 1, path | {node_id})
 
@@ -233,10 +256,20 @@ def build_graph_from_jsonl(path: Path) -> DiGraph:
         name = asset.get("name") or ""
         if not name:
             continue
-        resource_key = resource_key_from_name(name)
+        short_key = resource_key_from_name(name)
+        ancestors = asset.get("ancestors") or []
+
+        # Resources that include themselves as ancestors[0] get a path-based key
+        # so that the same GCP short ID at different hierarchy positions becomes
+        # a distinct node (e.g. two placements of folders/96505015065).
+        # Other resource types (buckets, billing accounts) keep their short key.
+        if ancestors and ancestors[0] == short_key:
+            resource_key = _path_key(ancestors, 0)
+        else:
+            resource_key = short_key
+
         g.add_node(resource_key, asset_type=asset.get("asset_type"), node_type="resource")
 
-        ancestors = asset.get("ancestors") or []
         if ancestors:
             add_hierarchy_edges(g, ancestors)
 
