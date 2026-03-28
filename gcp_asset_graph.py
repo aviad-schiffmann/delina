@@ -212,17 +212,14 @@ def show_folder_hierarchy(g: DiGraph, root: str | None = None) -> str:
         roots = sorted([n for n in hierarchy.keys() if n not in children])
 
     lines: list[str] = []
-    visited: set[str] = set()
 
-    def walk(node_id: str, level: int) -> None:
-        if node_id in visited:
+    def walk(node_id: str, level: int, path: frozenset[str] = frozenset()) -> None:
+        if node_id in path:  # cycle guard only
             return
-        visited.add(node_id)
-
         indent = "  " * level
         lines.append(f"{indent}{node_id}")
         for child_id in hierarchy.get(node_id, []):
-            walk(child_id, level + 1)
+            walk(child_id, level + 1, path | {node_id})
 
     for root_id in roots:
         walk(root_id, 0)

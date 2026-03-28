@@ -126,7 +126,7 @@ class TestAncestors(unittest.TestCase):
         self.assertIn("organizations/1066060271767", output)
         self.assertIn("  folders/36290848176", output)
         self.assertIn("    folders/495694787245", output)
-        self.assertEqual(output.count("folders/96505015065"), 1)
+        self.assertEqual(output.count("folders/96505015065"), 2)
 
 
 RON = "user:ron@test.authomize.com"
